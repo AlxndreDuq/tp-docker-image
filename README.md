@@ -1,23 +1,23 @@
 # Questions
 
-1. Quel est le poids de tp-docker:classic ?
+**1. Quel est le poids de tp-docker:classic ?**
 
  1.12GB
 
-2. Qu’est-ce qui “gonfle” potentiellement l’image ici ?
+**2. Qu’est-ce qui “gonfle” potentiellement l’image ici ?**
 * Les dépendances complètes (node_modules) : avec npm ci, toutes les dépendances (y compris celles de développement) sont installées et conservées dans l’image.
 * Les outils de build et l’environnement complet : l’image contient tout ce qui est nécessaire pour construire l’application (Node.js complet, outils système, etc.), alors que ces éléments ne sont pas utiles à l’exécution.
 * Le COPY . . : cette instruction copie l’intégralité du projet dans l’image, y compris des fichiers inutiles (logs, .git, etc.) si aucun .dockerignore n’est utilisé.
 
-3. Pourquoi node_modules dans le .dockerignore est une bonne idée ?
+**3. Pourquoi node_modules dans le .dockerignore est une bonne idée ?**
 
 Exclure le dossier node_modules via le fichier .dockerignore est une bonne pratique car il est souvent très volumineux et dépend de l’environnement local (système d’exploitation, architecture). Le copier dans l’image ralentirait fortement le build et pourrait entraîner des incompatibilités. En le supprimant du contexte de build, on force Docker à réinstaller proprement les dépendances avec npm ci, garantissant ainsi un environnement reproductible, plus fiable et optimisé.
 
-4. Quel est l’écart de poids entre classic et multistage ?
+**4. Quel est l’écart de poids entre classic et multistage ?**
 
 L’image classic fait 1.12 Go et l’image multistage 202 Mo. L’écart est donc d’environ 918 Mo
 
-5. Qu’est-ce qui a été supprimé (ou non copié) dans le stage runtime ?
+**5. Qu’est-ce qui a été supprimé (ou non copié) dans le stage runtime ?**
 
 Dans le stage runtime, seuls les éléments nécessaires à l’exécution sont conservés. Ont été supprimés (ou non copiés) :
 
@@ -28,7 +28,7 @@ Dans le stage runtime, seuls les éléments nécessaires à l’exécution sont 
 
 Seuls des éléments essentiels comme server.js, public et les dépendances de production sont gardés.
 
-6. Est-ce que ça réduit aussi la surface d’attaque ? Pourquoi ?
+**6. Est-ce que ça réduit aussi la surface d’attaque ? Pourquoi ?**
 
 Oui, le multi-stage réduit la surface d’attaque.
 
@@ -36,15 +36,14 @@ Moins il y a de logiciels et de fichiers dans une image, moins il y a de potenti
 
 De plus, une image plus minimaliste limite les possibilités pour un attaquant (moins de commandes disponibles, moins de bibliothèques exploitables), ce qui améliore globalement la sécurité.
 
-7. Quelles étapes créent les plus gros layers ?
+**7. Quelles étapes créent les plus gros layers ?**
+
 D’après le docker history, les couches les plus lourdes proviennent principalement :
 
-Des couches système de l’image de base (Debian) avec plusieurs apt-get
-→ jusqu’à 588 MB, 177 MB, 117 MB
-De l’installation de Node.js et ses dépendances
-→ environ 160 MB
+Des couches système de l’image de base (Debian) avec plusieurs apt-get -> jusqu’à 588 MB, 177 MB, 117 MB
+De l’installation de Node.js et ses dépendances -> environ 160 MB
 De l’installation des dépendances npm (npm ci)
-→ plusieurs dizaines de MB
+-> plusieurs dizaines de MB
 
 Ces étapes “gonflent” fortement l’image car elles ajoutent :
 
@@ -54,7 +53,7 @@ des bibliothèques complètes
 
 À l’inverse, les étapes comme COPY du code ou npm run build sont relativement légères.
 
-8. Comment le fait de copier package*.json avant le reste aide le cache Docker ?
+**8. Comment le fait de copier package\*.json avant le reste aide le cache Docker ?**
 
 Copier package*.json avant le reste permet d’optimiser le cache Docker.
 
